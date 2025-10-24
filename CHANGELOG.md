@@ -1,3 +1,7 @@
+## 0.4.0 _2025-10-24_
+
+- Updated Dart language version `>=3.8.0`.
+
 ## 0.3.0 _2023-01-31_
 
 - Add support for StreamDeck+:
