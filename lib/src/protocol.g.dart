@@ -398,7 +398,6 @@ SendToPluginEvent _$SendToPluginEventFromJson(Map<String, dynamic> json) =>
       event: json['event'] as String? ?? SendToPluginEvent.eventId,
       action: json['action'] as String,
       context: json['context'] as String,
-      device: json['device'] as String,
       payload: json['payload'] as Map<String, dynamic>,
     );
 
@@ -407,7 +406,6 @@ Map<String, dynamic> _$SendToPluginEventToJson(SendToPluginEvent instance) =>
       'event': instance.event,
       'action': instance.action,
       'context': instance.context,
-      'device': instance.device,
       'payload': instance.payload,
     };
 
@@ -415,9 +413,7 @@ SendToPropertyInspectorEvent _$SendToPropertyInspectorEventFromJson(
   Map<String, dynamic> json,
 ) => SendToPropertyInspectorEvent(
   event: json['event'] as String? ?? SendToPropertyInspectorEvent.eventId,
-  action: json['action'] as String,
   context: json['context'] as String,
-  device: json['device'] as String,
   payload: json['payload'] as Map<String, dynamic>,
 );
 
@@ -425,9 +421,7 @@ Map<String, dynamic> _$SendToPropertyInspectorEventToJson(
   SendToPropertyInspectorEvent instance,
 ) => <String, dynamic>{
   'event': instance.event,
-  'action': instance.action,
   'context': instance.context,
-  'device': instance.device,
   'payload': instance.payload,
 };
 
