@@ -5,3 +5,5 @@ build/
 doc/
 log.txt
 pubspec.lock
+
+.idea

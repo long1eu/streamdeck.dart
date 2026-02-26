@@ -305,6 +305,22 @@ abstract class StreamDeckPlugin {
           return touchTap(TouchTapEvent.fromJson(data));
         case DialPressEvent.eventId:
           return dialPress(DialPressEvent.fromJson(data));
+        case 'dialDown':
+          final patched = Map<String, Object?>.from(data);
+          patched['event'] = DialPressEvent.eventId;
+          final payload = patched['payload'] as Map<String, Object?>?;
+          if (payload != null && !payload.containsKey('pressed')) {
+            patched['payload'] = {...payload, 'pressed': true};
+          }
+          return dialPress(DialPressEvent.fromJson(patched));
+        case 'dialUp':
+          final patched = Map<String, Object?>.from(data);
+          patched['event'] = DialPressEvent.eventId;
+          final payload = patched['payload'] as Map<String, Object?>?;
+          if (payload != null && !payload.containsKey('pressed')) {
+            patched['payload'] = {...payload, 'pressed': false};
+          }
+          return dialPress(DialPressEvent.fromJson(patched));
         case DialRotateEvent.eventId:
           return dialRotate(DialRotateEvent.fromJson(data));
         default:

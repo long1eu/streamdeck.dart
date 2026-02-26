@@ -1,3 +1,6 @@
+## 0.4.1 _2026-02-26_
+- fix dial press handling
+
 ## 0.4.0 _2025-10-24_
 
 - Updated Dart language version `>=3.8.0`
