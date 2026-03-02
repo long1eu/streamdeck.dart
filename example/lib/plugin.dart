@@ -11,7 +11,6 @@ class Plugin extends StreamDeckPlugin {
     required super.pluginUuid,
     required super.registerEvent,
     required super.info,
-    super.logSink,
   }) {
     registerAction(CounterAction.actionUuid, CounterAction.new);
     registerAction(ClockAction.actionUuid, ClockAction.new);

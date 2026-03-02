@@ -1,8 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:streamdeck/src/protocol.dart';
+
+final _log = Logger('StreamDeck');
 
 typedef ActionConstructor =
     StreamDeckPluginAction Function(StreamDeckPlugin plugin, String context);
@@ -13,7 +16,6 @@ typedef PluginConstructor<T extends StreamDeckPlugin> =
       required String pluginUuid,
       required String registerEvent,
       required ServiceInfo info,
-      IOSink? logSink,
     });
 
 /// The base class for a Stream Deck plugin that connects to the Stream Deck.
@@ -25,7 +27,6 @@ abstract class StreamDeckPlugin {
   final String _registerEvent;
   final ServiceInfo _info; // ignore: unused_field
 
-  final IOSink? _logSink;
   final WebSocket _socket;
 
   final _actionConstructors = <String, ActionConstructor>{};
@@ -36,11 +37,9 @@ abstract class StreamDeckPlugin {
     required this.pluginUuid,
     required String registerEvent,
     required ServiceInfo info,
-    IOSink? logSink,
   }) : _socket = socket,
        _registerEvent = registerEvent,
-       _info = info,
-       _logSink = logSink {
+       _info = info {
     _socket.listen((data) => _handleSocketEvent(data));
     _send({"event": _registerEvent, "uuid": pluginUuid});
   }
@@ -97,16 +96,6 @@ abstract class StreamDeckPlugin {
   /// Called when a key on a Stream Deck is pressed released.
   void keyUp(KeyUpEvent event) {
     _actionContexts[event.context]?.keyUp(event);
-  }
-
-  /// Writes a message to the plugins debug log ([logSink]).
-  ///
-  /// The debug log is used for a plugin to be able to write to its own log file
-  /// (where all JSON traffic is recorded) for development/debugging purposes
-  /// and is not sent to the Stream Decks main log file (see [logMessage] for
-  /// that).
-  void logDebug(String message) {
-    _logSink?.writeln(message);
   }
 
   /// Logs a message to the plugins log file in the Stream Deck application.
@@ -271,7 +260,7 @@ abstract class StreamDeckPlugin {
   }
 
   void _handleSocketEvent(String jsonString) {
-    logDebug('DECK-->PLUGIN: $jsonString');
+    _log.fine('DECK-->PLUGIN: $jsonString');
     final data = jsonDecode(jsonString);
     if (data is Map<String, Object?>) {
       switch (data['event']) {
@@ -330,7 +319,7 @@ abstract class StreamDeckPlugin {
 
   void _send(Map<String, Object?> data) {
     final jsonString = jsonEncode(data);
-    logDebug('DECK<--PLUGIN: $jsonString');
+    _log.fine('DECK<--PLUGIN: $jsonString');
     _socket.add(jsonString);
   }
 
@@ -342,14 +331,13 @@ abstract class StreamDeckPlugin {
   /// Connects to the Stream Deck application.
   ///
   /// This method should be called once by a plugin at startup and provided a
-  /// [StreamDeckPlugin] constructor, the [arguments] passed to the process and
-  /// optionally a [logSink] to record all JSON traffic to (plus any calls
-  /// to [logDebug]).
+  /// [StreamDeckPlugin] constructor and the [arguments] passed to the process.
+  /// Configure logging by setting up [Logger.root] listeners before calling
+  /// this method.
   static Future<T> connect<T extends StreamDeckPlugin>(
     PluginConstructor<T> constructor,
-    List<String> arguments, {
-    IOSink? logSink,
-  }) async {
+    List<String> arguments,
+  ) async {
     final port = int.parse(arguments[arguments.indexOf('-port') + 1]);
     final pluginUuid = arguments[arguments.indexOf('-pluginUUID') + 1];
     final registerEvent = arguments[arguments.indexOf('-registerEvent') + 1];
@@ -364,7 +352,6 @@ abstract class StreamDeckPlugin {
       pluginUuid: pluginUuid,
       registerEvent: registerEvent,
       info: info,
-      logSink: logSink,
     );
   }
 }
@@ -394,16 +381,6 @@ abstract class StreamDeckPluginAction<T extends StreamDeckPlugin> {
 
   /// Called when a key on a Stream Deck is pressed released.
   void keyUp(KeyUpEvent event) {}
-
-  /// Writes a message to the plugins debug log.
-  ///
-  /// The debug log is used for a plugin to be able to write to its own log file
-  /// (where all JSON traffic is recorded) for development/debugging purposes
-  /// and is not sent to the Stream Decks main log file (see [logMessage] for
-  /// that).
-  void logDebug(String message) {
-    plugin.logDebug(message);
-  }
 
   /// Logs a message to the plugins log file in the Stream Deck application.
   void logMessage(LogMessagePayload payload) {

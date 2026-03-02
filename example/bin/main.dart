@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:logging/logging.dart';
 import 'package:streamdeck/streamdeck.dart';
 import 'package:path/path.dart' as path;
 import 'package:streamdeck_example_plugin/plugin.dart';
@@ -16,12 +17,17 @@ Future<void> main(List<String> arguments) async {
   final log = File(logFilePath).openWrite(mode: FileMode.append);
   log.writeln('Starting plugin: $arguments');
 
+  Logger.root.level = Level.ALL;
+  Logger.root.onRecord.listen((record) {
+    log.writeln('${record.level.name}: ${record.time}: '
+        '${record.loggerName}: ${record.message}');
+  });
+
   late final Plugin plugin;
   await runZonedGuarded(() async {
     plugin = await StreamDeckPlugin.connect(
       Plugin.new,
       arguments,
-      logSink: log,
     );
   }, (error, stack) => log.writeln('ERROR: $error $stack'));
 
